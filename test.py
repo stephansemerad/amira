@@ -66,3 +66,10 @@ for i in data:
 
     cursor.execute(sql)
     connection.commit()
+
+print("select table to check upload")
+sql = f"select * from {table_name}"
+cursor.execute(sql)
+results = list(cursor.fetchall())
+print(results)
+connection.commit()
