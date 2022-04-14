@@ -1,4 +1,4 @@
-# amira | Quickly create a SQL table based on a CSV
+# Amira | Quickly create a SQL table based on a CSV
 
 This was just a help for someone who had this task. 
 This uses Flask, Vue.js, Bootstrap5 and has a nice Drag and Drop Upload. 
