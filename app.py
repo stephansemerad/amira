@@ -42,7 +42,7 @@ def adjust_data_types(df):
         elif data_types[i] == "int64":
             data_types[i] = Integer
         elif data_types[i] == "float64":
-            data_types[i] = Numeric
+            data_types[i] = Float
         elif data_types[i] == "datetime64[ns]":
             data_types[i] = DateTime
         else:
