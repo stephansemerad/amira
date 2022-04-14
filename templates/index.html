@@ -35,16 +35,12 @@
 
         </div>
         <div class="col-6">
-            <div class="table-responsive">
+            <div v-if="table_meta.length != 0" class="table-responsive">
                 <table class="table table-sm  table-hover align-middle">
                     <thead class="">
                         <tr>
                             <th class="align-center">column</th>
-                            <th class="align-center">datatype
-
-
-
-                            </th>
+                            <th class="align-center">datatype</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -80,9 +76,9 @@
         </div>
     </div>
     <br>
-    <small>table_headers: [[table_headers]]</small> <br>
-    <small>table_data: [[table_data]]</small> <br>
-    <small>table_meta: [[table_meta]]</small> <br>
+    <small v-if="table_headers.length != 0">table_headers: [[table_headers]]</small> <br>
+    <small v-if="table_data.length != 0">table_data: [[table_data]]</small> <br>
+    <small v-if="table_meta.length != 0">table_meta: [[table_meta]]</small> <br>
 </div>
 
 
