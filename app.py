@@ -7,7 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from itsdangerous import json
 import pandas as pd
 from sqlalchemy import engine_from_config
-
+from sqlalchemy import String
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import FileStorage
 from helpers.allowed_files import allowed_file
@@ -35,20 +35,16 @@ def data_table_exists():
 
 def csv_to_table(file_path):
     print("csv_to_table")
-
     # 1 check if table exists if yes delete it.
     # 2. delete table if exists - so that we can upload new.
     if data_table_exists:
-        sql = f"drop table data"
-        result = db.session.execute(sql)
-        db.session.commit()
+        try:
+            result = db.session.execute(f"drop table data")
+            db.session.commit()
+        except Exception as e:
+            print(e)
 
-    # 3. creation on the table based on csv
     df = pd.read_csv(file_path)
-    headers = list(df.columns.values)
-    data_types = list(df.dtypes.astype("str"))
-
-    # 4. send datafram to database
     df.to_sql("data", con=db.engine, index=False)
 
     return {
@@ -66,9 +62,9 @@ def file_upload():
         file_name = f"{timestamp}_{file.filename}"
         file_path = os.path.join("./static/csv", secure_filename(file_name))
         file.save(file_path)
+
         if os.path.exists(file_path):
-            msg = csv_to_table(file_path)
-            return jsonify(msg)
+            return jsonify(csv_to_table(file_path))
         else:
             return jsonify({"status": "notok", "msg": f"file could not be converted"})
     else:
@@ -108,6 +104,88 @@ def display_table_meta():
     result = [[x[1], x[2]] for x in result]
 
     return jsonify(result)
+
+
+@app.route("/change_column_type", methods=["PUT"])
+def change_column_type():
+    print("change_column_type")
+
+    data = request.json
+    column = data.get("column", None)
+    datatype = data.get("datatype", None)
+    column = column[0][0] if column else None
+
+    df = pd.read_sql_query("SELECT * from data", con=db.engine)
+
+    print("-----------------------------")
+    print("BEFORE")
+    print(df.dtypes)
+
+    # try:
+    if datatype == "BIGINT":
+        print("changing to BIGINT")
+        df[column] = df[column].astype("int64")
+
+    if datatype == "TEXT":
+        print("changing to TEXT")
+        df[column] = df[column].astype("object")
+
+    if datatype == "FLOAT":
+        print("changing to FLOAT")
+        df[column] = df[column].astype("float64")
+
+    print("AFTER")
+    print(df.dtypes)
+
+    # except Exception as e:
+    #     return jsonify(
+    #         {
+    #             "status": "notok",
+    #             "msg": f"column {column} can not be changed to data type {datatype}",
+    #         }
+    #     )
+
+    try:
+        result = db.session.execute(f"drop table data")
+        db.session.commit()
+    except Exception as e:
+        print(e)
+
+    df.to_sql("data", con=db.engine, index=False, dtype={"IDBIAT": String})
+
+    db.session.commit()
+
+    print("AFTER AFTER ")
+    df = pd.read_sql_query("SELECT * from data", con=db.engine)
+    print(df.dtypes)
+
+    print("-----------------------------")
+
+    return jsonify(
+        {
+            "status": "ok",
+            "msg": f"column was changed",
+        }
+    )
+
+
+@app.route("/delete_column", methods=["GET"])
+def delete_column():
+    print("delete_column")
+    data = request.json
+    print(request.args)
+    print(request.form)
+
+    # column = data.get("column", None)
+
+    # print("column: ", column)
+
+    return jsonify(
+        {
+            "status": "ok",
+            "msg": f"file deleted",
+        }
+    )
 
 
 if __name__ == "__main__":
