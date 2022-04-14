@@ -7,14 +7,14 @@
         <h6 class="display-6">Amira</h6>
         <p>CSV > Dataframe > Database > Transformation</p>
     </div>
-    <div class="row">
-        <div class="col-12">
 
-            <div class="alert alert-danger p-3 small " role="alert">
-                A simple secondary alert—check it out!
+    <div v-show="msg" class="row">
+        <div class="col-12">
+            <div v-if="status == 'notok'" class="alert alert-danger p-3 small " role="alert">
+                [[msg]]
             </div>
-            <div class="alert alert-success p-3 small " role="alert">
-                A simple success alert—check it out!
+            <div v-if="status == 'ok'" class="alert alert-success p-3 small " role="alert">
+                [[msg]]
             </div>
         </div>
     </div>
@@ -22,12 +22,15 @@
 
     <div class="row ">
         <div class="col-6">
-            <div class="drag-image">
+            <div class="drag-image" @dragover="dragover" @dragleave="dragleave" @drop="drop">
                 <div class="icon"><i class="fas fa-cloud-upload-alt"></i></div>
-                <h6>Drag & Drop File Here</h6>
-                <span>OR</span>
-                <button>Browse File</button>
-                <input type="file" hidden>
+                <label>Drag & Drop File Here</label>
+                <label>or</label>
+                <label for="file-upload" class="btn btn-sm">
+                    <i aria-hidden="true" class="mr-1 fas fa-file-upload"></i>
+                    Browse File</label>
+                <input id="file-upload" type="file" @change="on_change" accept=".csv" hidden />
+
             </div>
 
         </div>
@@ -45,19 +48,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>Larry</td>
-                            <td>
-
-                                <select>
-                                    <option value="string">String</option>
-                                    <option value="integer">Integer</option>
-                                    <option value="float">Float</option>
-                                    <option value="datetime">Datetime</option>
-                                    <option value="boolean">Boolean</option>
-                                </select>
-
-                            </td>
+                        <tr v-for="row in table_meta">
+                            <td v-for="item in row">[[item]]</td>
                         </tr>
                     </tbody>
                 </table>
@@ -71,21 +63,14 @@
         <div class="col-12">
             <div class="table-responsive">
                 <table class="table table-sm  table-hover align-middle">
-                    <thead class="">
+                    <thead>
                         <tr>
-                            <th class="align-center">id</th>
-                            <th class="align-center">column</th>
-                            <th class="align-center">type</th>
+                            <th v-for="header in table_headers"></th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <th>3</th>
-                            <td>Larry</td>
-                            <td>
-                                test
-
-                            </td>
+                        <tr v-for="row in table_data">
+                            <td v-for="item in row">[[item]]</td>
                         </tr>
                     </tbody>
                 </table>
@@ -94,9 +79,17 @@
 
         </div>
     </div>
+    <br>
+    <small>table_headers: [[table_headers]]</small> <br>
+    <small>table_data: [[table_data]]</small> <br>
+    <small>table_meta: [[table_meta]]</small> <br>
 </div>
 
+
+
 <script>
+
+
     new Vue({
         el: "#app",
         delimiters: ["[[", "]]"],
@@ -104,56 +97,91 @@
             status: null,
             msg: null,
             table_headers: [],
-            table_contents: [],
+            table_data: [],
             table_meta: [],
+            files: null
         },
         methods: {
-            upload_file(event) {
+            dragover(event) {
+                console.log('dragover')
+                event.preventDefault();
+                // Add some visual fluff to show the user can drop its files
+                if (!event.currentTarget.classList.contains('bg-highlight')) {
+                    event.currentTarget.classList.remove('bg-gray');
+                    event.currentTarget.classList.add('bg-highlight');
+                }
+            },
+            dragleave(event) {
+                console.log('dragleave')
+                // Clean up
+                event.currentTarget.classList.add('bg-gray');
+                event.currentTarget.classList.remove('bg-highlight');
+            },
+            drop(event) {
+                console.log('drop')
+                event.preventDefault();
+                event.currentTarget.classList.add('bg-gray');
+                event.currentTarget.classList.remove('bg-highlight');
+                this.files = event.dataTransfer.files;
+                this.file_upload()
+
+            },
+            on_change(event) {
+                this.files = event.target.files;
+                this.file_upload()
+            },
+
+            file_upload() {
+                console.log('file_upload')
+                this.msg = null
+                this.status = null
                 var fd = new FormData();
-                fd.append("id", this.insurance.id);
-                for (var i = 0; i < event.target.files.length; i++) {
-                    fd.append("files", event.target.files[i]);
+                for (var i = 0; i < this.files.length; i++) {
+                    fd.append("files", this.files[i]);
                 }
                 axios.post("/file_upload", fd)
                     .then((response) => {
-                        console.log(upload_file.data);
+                        console.log(response.data);
                         this.msg = response.data.msg;
-                        this.msg_status = response.data.msg_status;
-                        this.get_files(this.insurance.id);
+                        this.status = response.data.status;
+
+                        this.diplay_table_data()
+                        this.display_table_meta()
+
                     });
-            }, // end upload_file 
+            }, // end file_upload 
 
             async diplay_table_data() {
-                console.log('diplay_table_data')
+                console.log('[+] diplay_table_data')
                 axios.get('/diplay_table_data')
                     .then((response) => {
-                        table_headers = response.data.headers
-                        table_contents = response.data.contents
+                        console.log(response.data)
+                        this.table_headers = response.data.headers
+                        this.table_data = response.data.data
                     })
             }, // end diplay_table_data
 
             async display_table_meta() {
-                console.log('display_table_meta')
+                console.log('[+] display_table_meta')
                 axios.get('/display_table_meta')
                     .then((response) => {
-                        table_meta = response.data
+                        console.log(response.data)
+                        this.table_meta = response.data
                     })
             }, // end display_table_meta
 
-            async change_data_header() {
-                console.log('change_data_header')
-                axios.put('/change_data_header', { 'column': column, 'datatype': datatype })
-                    .then((response) => {
-                        data_table_headers = response.data.headers
-                        data_table_contents = response.data.contents
-                    })
-            }, // end change_data_header
 
         }, // end methods
 
         mounted: function () {
+
+
             console.log("[*] app mounted");
+
+
         }, // end mounted
     }); // end vue app
 
-    {% endblock %}
+</script>
+
+{% endblock %}
