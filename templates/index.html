@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div id="app" class="container p-5">
+    <div class="row mb-3">
+        <h6 class="display-6">Amira</h6>
+        <p>CSV > Dataframe > Database > Transformation</p>
+    </div>
+    <div class="row">
+        <div class="col-12">
+
+            <div class="alert alert-danger p-3 small " role="alert">
+                A simple secondary alert—check it out!
+            </div>
+            <div class="alert alert-success p-3 small " role="alert">
+                A simple success alert—check it out!
+            </div>
+        </div>
+    </div>
+
+
+    <div class="row ">
+        <div class="col-6">
+            <div class="drag-image">
+                <div class="icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                <h6>Drag & Drop File Here</h6>
+                <span>OR</span>
+                <button>Browse File</button>
+                <input type="file" hidden>
+            </div>
+
+        </div>
+        <div class="col-6">
+            <div class="table-responsive">
+                <table class="table table-sm  table-hover align-middle">
+                    <thead class="">
+                        <tr>
+                            <th class="align-center">column</th>
+                            <th class="align-center">datatype
+
+
+
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Larry</td>
+                            <td>
+
+                                <select>
+                                    <option value="string">String</option>
+                                    <option value="integer">Integer</option>
+                                    <option value="float">Float</option>
+                                    <option value="datetime">Datetime</option>
+                                    <option value="boolean">Boolean</option>
+                                </select>
+
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="table-responsive">
+                <table class="table table-sm  table-hover align-middle">
+                    <thead class="">
+                        <tr>
+                            <th class="align-center">id</th>
+                            <th class="align-center">column</th>
+                            <th class="align-center">type</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th>3</th>
+                            <td>Larry</td>
+                            <td>
+                                test
+
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    new Vue({
+        el: "#app",
+        delimiters: ["[[", "]]"],
+        data: {
+            status: null,
+            msg: null,
+            table_headers: [],
+            table_contents: [],
+            table_meta: [],
+        },
+        methods: {
+            upload_file(event) {
+                var fd = new FormData();
+                fd.append("id", this.insurance.id);
+                for (var i = 0; i < event.target.files.length; i++) {
+                    fd.append("files", event.target.files[i]);
+                }
+                axios.post("/file_upload", fd)
+                    .then((response) => {
+                        console.log(upload_file.data);
+                        this.msg = response.data.msg;
+                        this.msg_status = response.data.msg_status;
+                        this.get_files(this.insurance.id);
+                    });
+            }, // end upload_file 
+
+            async diplay_table_data() {
+                console.log('diplay_table_data')
+                axios.get('/diplay_table_data')
+                    .then((response) => {
+                        table_headers = response.data.headers
+                        table_contents = response.data.contents
+                    })
+            }, // end diplay_table_data
+
+            async display_table_meta() {
+                console.log('display_table_meta')
+                axios.get('/display_table_meta')
+                    .then((response) => {
+                        table_meta = response.data
+                    })
+            }, // end display_table_meta
+
+            async change_data_header() {
+                console.log('change_data_header')
+                axios.put('/change_data_header', { 'column': column, 'datatype': datatype })
+                    .then((response) => {
+                        data_table_headers = response.data.headers
+                        data_table_contents = response.data.contents
+                    })
+            }, // end change_data_header
+
+        }, // end methods
+
+        mounted: function () {
+            console.log("[*] app mounted");
+        }, // end mounted
+    }); // end vue app
+
+    {% endblock %}
