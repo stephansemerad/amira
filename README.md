@@ -10,5 +10,7 @@ python app.py
 
 ```
 
+and then upload a csv that has a header. Voila!
+
 ![](https://raw.githubusercontent.com/stephansemerad/amira/master/static/imgs/img.png)
 
