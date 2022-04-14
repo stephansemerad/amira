@@ -129,6 +129,10 @@
 
             file_upload() {
                 console.log('file_upload')
+                this.table_headers = []
+                this.table_data = []
+                this.table_meta = []
+
                 this.msg = null
                 this.status = null
                 var fd = new FormData();
