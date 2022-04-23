@@ -14,3 +14,9 @@ python -m pip install itsdangerous==2.0.1
 python -m pip freeze > requirements.txt
 deactivate
 
+
+
+https://redis.io/
+https://github.com/redis/redis-py
+
+# pytest-recording
