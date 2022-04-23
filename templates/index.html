@@ -50,8 +50,9 @@
                             <th class="align-center">column</th>
                             <th class="align-center">datatype</th>
 
-                            <th class="align-center">empty</th>
+                            <th class="align-center">count</th>
                             <th class="align-center">filled</th>
+                            <th class="align-center">percentage</th>
 
                             <th class="align-center">datatype</th>
                             <th class="align-center">delete</th>
@@ -64,7 +65,7 @@
                             <td>[[ row.slice(1, 2)[0] ]]</td>
                             <td>[[ row.slice(2, 3)[0] ]]</td>
                             <td>[[ row.slice(3, 4)[0] ]]</td>
-
+                            <td>[[ row.slice(4, 5)[0] ]]</td>
                             <td>
                                 <select @change="change_column_type( [[row.slice(0, 1)[0] ]], $event)"
                                     v-bind:value="[[ row.slice(1, 2)[0] ]]" class="form-control form-control-sm">

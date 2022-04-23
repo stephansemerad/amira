@@ -129,8 +129,8 @@ def diplay_table_data():
 def get_column_null_and_not_null_count(table_name):
     sql = f"""
     select
-    (select count(1) from data where {table_name} is null),
-    (select count(1) from data where {table_name} is not null)
+    (select count(1) from data) as count,
+    (select count(1) from data where {table_name} is not null) as filled
     """
     result = db.session.execute(sql).first()
     return result
@@ -149,13 +149,15 @@ def display_table_meta():
         for x in result:
 
             values = get_column_null_and_not_null_count(x[1])
-            values_that_are_null = values[0]
-            values_that_are_filled = values[1]
+            count_ = values[0]
+            filled_ = values[1]
+            percentage_ = values[1] / values[0]
             row = []
             row.append(x[1])
             row.append(x[2])
-            row.append(values_that_are_null)
-            row.append(values_that_are_filled)
+            row.append(count_)
+            row.append(filled_)
+            row.append("{0:.0%}".format(percentage_))
 
             data.append(row)
 
