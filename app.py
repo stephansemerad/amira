@@ -96,7 +96,7 @@ def file_upload():
 
 @app.route("/diplay_table_data", methods=["GET"])
 def diplay_table_data():
-    print('data_table_exists')
+    print("data_table_exists")
     print(data_table_exists())
     if not data_table_exists():
         return jsonify(
@@ -112,7 +112,7 @@ def diplay_table_data():
         headers = db.session.execute(sql)
         headers = [x[1] for x in headers]
 
-        print('headers:', headers)
+        print("headers:", headers)
 
         # 2 - get data from table
         sql = f"select * from data"
@@ -126,6 +126,16 @@ def diplay_table_data():
         return jsonify(data)
 
 
+def get_column_null_and_not_null_count(table_name):
+    sql = f"""
+    select
+    (select count(1) from data where {table_name} is null),
+    (select count(1) from data where {table_name} is not null)
+    """
+    result = db.session.execute(sql).first()
+    return result
+
+
 @app.route("/display_table_meta", methods=["GET"])
 def display_table_meta():
     if not data_table_exists:
@@ -134,9 +144,22 @@ def display_table_meta():
         # 1 - get table description
         sql = f"PRAGMA table_info(data)"
         result = db.session.execute(sql)
-        result = [[x[1], x[2]] for x in result]
 
-        return jsonify(result)
+        data = []
+        for x in result:
+
+            values = get_column_null_and_not_null_count(x[1])
+            values_that_are_null = values[0]
+            values_that_are_filled = values[1]
+            row = []
+            row.append(x[1])
+            row.append(x[2])
+            row.append(values_that_are_null)
+            row.append(values_that_are_filled)
+
+            data.append(row)
+
+        return jsonify(data)
 
 
 @app.route("/change_column_type", methods=["PUT"])
@@ -148,21 +171,26 @@ def change_column_type():
 
     print()
     print("change_column_type")
-    print('column: ', column)
-    print('datatype: ', datatype)
+    print("column: ", column)
+    print("datatype: ", datatype)
 
     df = pd.read_sql_query("SELECT * from data", con=db.engine)
 
     mapping = {
-        'VARCHAR': "object",
-        'INTEGER': "int64",
-        'FLOAT': "float64",
+        "VARCHAR": "object",
+        "INTEGER": "int64",
+        "FLOAT": "float64",
     }
 
     try:
         df[column] = df[column].astype(mapping[datatype])
     except Exception as e:
-        return jsonify({"status": "notok",  "msg": f"column {column} can not be changed to {datatype}, {e}"})
+        return jsonify(
+            {
+                "status": "notok",
+                "msg": f"column {column} can not be changed to {datatype}, {e}",
+            }
+        )
 
     result = db.session.execute(f"drop table data")
     db.session.commit()
@@ -170,7 +198,12 @@ def change_column_type():
     data_types = adjust_data_types(df)
     df.to_sql("data", con=db.engine, index=False, dtype=data_types)
 
-    return jsonify({"status": "ok",  "msg": f"column {column} was changed to {datatype}", })
+    return jsonify(
+        {
+            "status": "ok",
+            "msg": f"column {column} was changed to {datatype}",
+        }
+    )
 
 
 @app.route("/delete_column", methods=["DELETE"])
@@ -178,7 +211,7 @@ def delete_column():
     print("delete_column")
     data = request.args
     column = data.get("column", None)
-    print('column: ', column)
+    print("column: ", column)
 
     sql = f"PRAGMA table_info(data)"
     data = db.session.execute(sql)

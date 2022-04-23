@@ -49,6 +49,10 @@
                         <tr>
                             <th class="align-center">column</th>
                             <th class="align-center">datatype</th>
+
+                            <th class="align-center">empty</th>
+                            <th class="align-center">filled</th>
+
                             <th class="align-center">datatype</th>
                             <th class="align-center">delete</th>
 
@@ -58,6 +62,8 @@
                         <tr v-for="row in table_meta">
                             <td>[[row.slice(0, 1)[0] ]]</td>
                             <td>[[ row.slice(1, 2)[0] ]]</td>
+                            <td>[[ row.slice(2, 3)[0] ]]</td>
+                            <td>[[ row.slice(3, 4)[0] ]]</td>
 
                             <td>
                                 <select @change="change_column_type( [[row.slice(0, 1)[0] ]], $event)"
@@ -67,6 +73,7 @@
                                     <option value="FLOAT">FLOAT</option>
                                 </select>
                             </td>
+
                             <td>
                                 <a href="#" data-toggle="modal" data-target="#exampleModal"
                                     @click="delete_column([[row.slice(0, 1)[0] ]])">
