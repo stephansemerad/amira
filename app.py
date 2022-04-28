@@ -244,16 +244,26 @@ from flask import Flask
 from matplotlib.figure import Figure
 
 
-@app.route("/hello")
-def hello():
+@app.route("/pie_chart")
+def pie_chart():
     # Generate the figure **without using pyplot**.
     fig = Figure()
     ax = fig.subplots()
     ax.plot([1, 2])
-    # Save it to a temporary buffer.
     buf = BytesIO()
     fig.savefig(buf, format="png")
-    # Embed the result in the html output.
+    data = base64.b64encode(buf.getbuffer()).decode("ascii")
+    return f"<img src='data:image/png;base64,{data}'/>"
+
+
+@app.route("/column_chart")
+def column_chart():
+    # Generate the figure **without using pyplot**.
+    fig = Figure()
+    ax = fig.subplots()
+    ax.plot([1, 2])
+    buf = BytesIO()
+    fig.savefig(buf, format="png")
     data = base64.b64encode(buf.getbuffer()).decode("ascii")
     return f"<img src='data:image/png;base64,{data}'/>"
 

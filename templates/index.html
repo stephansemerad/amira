@@ -98,7 +98,8 @@
 
     <div class="row mt-5">
         <div class="col-6">
-            <div id="pie_chart"></div>
+            <div id="pie_chart" style="width: 100%;">
+            </div>
         </div>
 
         <div class="col-6">
@@ -151,12 +152,21 @@
 
             pie_chart() {
                 console.log('pie_chart')
-
-
+                axios.get("/pie_chart")
+                    .then((response) => {
+                        console.log(response.data);
+                        document.getElementById('pie_chart').innerHTML = response.data
+                    });
 
             },
             column_chart() {
                 console.log('column_chart')
+                axios.get("/column_chart")
+                    .then((response) => {
+                        console.log(response.data);
+                        document.getElementById('column_chart').innerHTML = response.data
+                    });
+
 
             },
             dragover(event) {
@@ -266,6 +276,8 @@
         mounted: function () {
             this.diplay_table_data()
             this.display_table_meta()
+            this.pie_chart()
+            this.column_chart()
 
             console.log("[*] app mounted");
 
