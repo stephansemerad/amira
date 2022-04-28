@@ -15,6 +15,7 @@ from helpers.allowed_files import allowed_file
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = "static"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
 
@@ -137,14 +138,6 @@ def change_column_type():
     print("AFTER")
     print(df.dtypes)
 
-    # except Exception as e:
-    #     return jsonify(
-    #         {
-    #             "status": "notok",
-    #             "msg": f"column {column} can not be changed to data type {datatype}",
-    #         }
-    #     )
-
     try:
         result = db.session.execute(f"drop table data")
         db.session.commit()
@@ -186,6 +179,27 @@ def delete_column():
             "msg": f"file deleted",
         }
     )
+
+
+import base64
+from io import BytesIO
+
+from flask import Flask
+from matplotlib.figure import Figure
+
+
+@app.route("/hello")
+def hello():
+    # Generate the figure **without using pyplot**.
+    fig = Figure()
+    ax = fig.subplots()
+    ax.plot([1, 2])
+    # Save it to a temporary buffer.
+    buf = BytesIO()
+    fig.savefig(buf, format="png")
+    # Embed the result in the html output.
+    data = base64.b64encode(buf.getbuffer()).decode("ascii")
+    return f"<img src='data:image/png;base64,{data}'/>"
 
 
 if __name__ == "__main__":

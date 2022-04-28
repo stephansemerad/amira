@@ -94,6 +94,16 @@
     </div>
 
     <div class="row mt-5">
+        <div class="col-6">
+            <div id="pie_chart"></div>
+        </div>
+
+        <div class="col-6">
+            <div id="column_chart"></div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
         <div class="col-12">
             <div class="table-responsive">
                 <table class="table table-sm  table-hover align-middle">
@@ -135,6 +145,17 @@
             files: null,
         },
         methods: {
+
+            pie_chart() {
+                console.log('pie_chart')
+
+
+
+            },
+            column_chart() {
+                console.log('column_chart')
+
+            },
             dragover(event) {
                 console.log('dragover')
                 event.preventDefault();
