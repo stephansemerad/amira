@@ -272,18 +272,21 @@ def pie_chart():
     if label_to_use == "":
         label_to_use = size_to_use
 
-    sql = f"select {label_to_use} from data"
+    sql = f"""
+    select {label_to_use}, sum({size_to_use}) as value
+    from data
+    group by {label_to_use}
+    """
     data = db.session.execute(sql)
-    labels = [str(x[0]) for x in data]
 
-    sql = f"select {size_to_use} from data"
-    data = db.session.execute(sql)
-    sizes = [x[0] for x in data]
+    labels = []
+    sizes = []
+    for x in data:
+        labels.append(str(x[0]))
+        sizes.append(x[1])
 
     # 1. create the graph
     fig = Figure()
-    # labels = [15, 30, 45, 10]
-    # sizes = [15, 30, 45, 10]
     ax = fig.subplots()
     ax.pie(sizes, labels=labels, autopct="%1.1f%%", shadow=True, startangle=90)
     ax.axis("equal")

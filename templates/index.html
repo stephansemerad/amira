@@ -297,6 +297,7 @@
                     .then((response) => {
                         console.log(response.data)
                         this.table_meta = response.data
+                        this.get_column_names_from_database()
                     })
             }, // end display_table_meta
 
