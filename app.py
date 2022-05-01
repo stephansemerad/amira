@@ -13,6 +13,13 @@ from werkzeug.datastructures import FileStorage
 from helpers.allowed_files import allowed_file
 from sqlalchemy import String, Numeric, Integer, Float, DateTime
 
+import base64
+from io import BytesIO
+
+from flask import Flask
+from matplotlib.figure import Figure
+
+
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = "static"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
@@ -237,31 +244,51 @@ def delete_column():
     )
 
 
-import base64
-from io import BytesIO
+@app.route("/get_column_names_from_database", methods=["GET"])
+def get_column_names_from_database():
+    sql = f"PRAGMA table_info(data)"
+    data = db.session.execute(sql)
+    headers = [x[1] for x in data]
+    return jsonify(headers)
 
-from flask import Flask
-from matplotlib.figure import Figure
 
-
-@app.route("/pie_chart")
+@app.route("/pie_chart", methods=["GET"])
 def pie_chart():
-    # Generate the figure **without using pyplot**.
-    fig = Figure()
-    ax = fig.subplots()
-    ax.plot([1, 2])
-    buf = BytesIO()
-    fig.savefig(buf, format="png")
-    data = base64.b64encode(buf.getbuffer()).decode("ascii")
-    return f"<img src='data:image/png;base64,{data}'/>"
+    # 1. Create the Matplot
+    print("")
+    print("*********")
+    print("pie_chart")
 
+    label_to_use = request.args.get("label_to_use", None)
+    size_to_use = request.args.get("size_to_use", None)
 
-@app.route("/column_chart")
-def column_chart():
-    # Generate the figure **without using pyplot**.
+    print("label_to_use", label_to_use)
+    print("size_to_use", size_to_use)
+
+    if size_to_use == "":
+        return ""
+
+    # From 2 dimension into 1 dimension
+    if label_to_use == "":
+        label_to_use = size_to_use
+
+    sql = f"select {label_to_use} from data"
+    data = db.session.execute(sql)
+    labels = [str(x[0]) for x in data]
+
+    sql = f"select {size_to_use} from data"
+    data = db.session.execute(sql)
+    sizes = [x[0] for x in data]
+
+    # 1. create the graph
     fig = Figure()
+    # labels = [15, 30, 45, 10]
+    # sizes = [15, 30, 45, 10]
     ax = fig.subplots()
-    ax.plot([1, 2])
+    ax.pie(sizes, labels=labels, autopct="%1.1f%%", shadow=True, startangle=90)
+    ax.axis("equal")
+
+    # 2. Save to buffer
     buf = BytesIO()
     fig.savefig(buf, format="png")
     data = base64.b64encode(buf.getbuffer()).decode("ascii")

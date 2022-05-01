@@ -97,14 +97,40 @@
     </div>
 
     <div class="row mt-5">
-        <div class="col-6">
-            <div id="pie_chart" style="width: 100%;">
+        <div>
+            <hr>
+        </div>
+        <div>
+            <h6 class="display-6">Pie-Chart</h6>
+        </div>
+        <div>
+            <hr>
+        </div>
+
+        <div class="col-4">
+            <label for="labels">Labels</label>
+            <select v-model="pie_chart.label_to_use" class="form-control form-control-sm" @change="get_pie_chart()">
+                <option value="">Please Select</option>
+                <option v-for="column in column_names" v-bind:value="column">[[column]]
+                </option>
+            </select>
+        </div>
+
+        <div class="col-4">
+            <label for="sizes">Sizes</label>
+            <select v-model="pie_chart.size_to_use" class="form-control form-control-sm" @change="get_pie_chart()">
+                <option value="">Please Select</option>
+                <option v-for="column in column_names" v-bind:value="column">[[column]]
+                </option>
+            </select>
+        </div>
+
+        <div class="col-12 mt-10">
+            <div id="pie_chart_img" style="width: 100%;">
             </div>
         </div>
 
-        <div class="col-6">
-            <div id="column_chart"></div>
-        </div>
+
     </div>
 
     <div class="row mt-5">
@@ -131,6 +157,9 @@
     <small>table_headers: [[table_headers]]</small> <br>
     <small>table_data: [[table_data]]</small> <br>
     <small>table_meta: [[table_meta]]</small> <br>
+    <small>pie_chart: [[pie_chart]]</small> <br>
+    <small>column_names: [[column_names]]</small> <br>
+
 </div>
 
 
@@ -147,26 +176,56 @@
             table_data: [],
             table_meta: [],
             files: null,
+            column_names: [],
+            pie_chart: {
+                label_to_use: "",
+                size_to_use: "",
+            },
+
+
         },
+
+
         methods: {
 
-            pie_chart() {
-                console.log('pie_chart')
-                axios.get("/pie_chart")
-                    .then((response) => {
-                        console.log(response.data);
-                        document.getElementById('pie_chart').innerHTML = response.data
-                    });
+
+            download_pie_chart() {
+
+                var link = document.createElement('a');
+                link.href = 'images.jpg';
+                link.download = 'Download.jpg';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
 
             },
-            column_chart() {
-                console.log('column_chart')
-                axios.get("/column_chart")
+
+            get_column_names_from_database() {
+                axios.get("/get_column_names_from_database")
+                    .then(response => {
+                        this.column_names = response.data;
+                    })
+
+            },
+
+
+            get_pie_chart() {
+                console.log('pie_chart')
+                console.log(this.pie_chart)
+                console.log(this.pie_chart.label_to_use)
+                console.log(this.pie_chart.size_to_use)
+
+
+                axios.get("/pie_chart", {
+                    params: {
+                        label_to_use: this.pie_chart.label_to_use,
+                        size_to_use: this.pie_chart.size_to_use,
+                    }
+                })
                     .then((response) => {
                         console.log(response.data);
-                        document.getElementById('column_chart').innerHTML = response.data
+                        document.getElementById('pie_chart_img').innerHTML = response.data
                     });
-
 
             },
             dragover(event) {
@@ -276,8 +335,8 @@
         mounted: function () {
             this.diplay_table_data()
             this.display_table_meta()
-            this.pie_chart()
-            this.column_chart()
+            this.get_column_names_from_database()
+            this.get_pie_chart()
 
             console.log("[*] app mounted");
 
