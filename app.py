@@ -272,12 +272,29 @@ def pie_chart():
     if label_to_use == "":
         label_to_use = size_to_use
 
-    sql = f"""
-    select {label_to_use}, sum({size_to_use}) as value
-    from data
-    group by {label_to_use}
-    """
+    sql = f"PRAGMA table_info(data)"
     data = db.session.execute(sql)
+    dictionary = {}
+    for i in data:
+        print(i[0], i[1], i[2], i[3])
+        dictionary[str(i[1])] = i[2]
+
+    data_type_of_size_to_use = dictionary[size_to_use]
+    if data_type_of_size_to_use == "VARCHAR":
+        sql = f"""
+        select {label_to_use}, count({size_to_use}) as value
+        from data
+        group by {label_to_use}
+        """
+        data = db.session.execute(sql)
+    else:
+
+        sql = f"""
+        select {label_to_use}, sum({size_to_use}) as value
+        from data
+        group by {label_to_use}
+        """
+        data = db.session.execute(sql)
 
     labels = []
     sizes = []
