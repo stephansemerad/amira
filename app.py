@@ -6,19 +6,15 @@ from turtle import title
 from flask import Flask
 from flask import request, render_template, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from itsdangerous import json
 import pandas as pd
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import FileStorage
 from helpers.allowed_files import allowed_file
 from sqlalchemy import String, Numeric, Integer, Float, DateTime
-
 import base64
 from io import BytesIO
-
 from flask import Flask
 from matplotlib.figure import Figure
-
 
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = "static"
