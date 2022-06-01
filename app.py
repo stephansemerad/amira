@@ -23,19 +23,14 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
 
-@app.route("/", methods=["GET"])
+@app.route("/")
 def index():
     return render_template("index.html")
 
 
 def data_table_exists():
-    sql = f"PRAGMA table_info(data)"
-    headers = db.session.execute(sql)
-    headers = [x[1] for x in headers]
-    if headers:
-        return True
-    else:
-        return False
+    headers = [x[1] for x in db.session.execute(f"PRAGMA table_info(data)")]
+    return True if headers else False
 
 
 def adjust_data_types(df):
@@ -277,19 +272,11 @@ def pie_chart():
 
     data_type_of_size_to_use = dictionary[size_to_use]
     if data_type_of_size_to_use == "VARCHAR":
-        sql = f"""
-        select {label_to_use}, count({size_to_use}) as value
-        from data
-        group by {label_to_use}
-        """
+        sql = f"""select {label_to_use}, count({size_to_use}) as value from data  group by {label_to_use}"""
         data = db.session.execute(sql)
     else:
 
-        sql = f"""
-        select {label_to_use}, sum({size_to_use}) as value
-        from data
-        group by {label_to_use}
-        """
+        sql = f"""select {label_to_use}, sum({size_to_use}) as value from data  group by {label_to_use}"""
         data = db.session.execute(sql)
 
     labels = []

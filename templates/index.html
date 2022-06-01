@@ -137,8 +137,51 @@
 </div>
 
 
+<style>
+    .mystyle {
+        width: 100%;
+        padding: 25px;
+        background-color: white;
+        color: white;
+        font-size: 25px;
+        box-sizing: border-box;
+    }
+</style>
+
 
 <script>
+
+    function get_pie_chart(id) {
+        console.log('pie_chart')
+        console.log('id: ' + id)
+
+        var label_to_use = document.getElementById('label_' + id).value
+        var size_to_use = document.getElementById('size_' + id).value
+
+        console.log('label_to_use; ', label_to_use)
+        console.log('size_to_use; ', size_to_use)
+
+        axios.get("/pie_chart", {
+            params: {
+                label_to_use: label_to_use,
+                size_to_use: size_to_use,
+            }
+        }).then((response) => {
+            document.getElementById('pie_chart_img_' + id).innerHTML = response.data
+        });
+
+    } // end get_pie_chart
+
+    function toogle_chart(id) {
+        var element = document.getElementById('pie_chart_img_' + id);
+        console.log('element.style.display: ', element.style.display)
+
+        if (element.style.display == 'none') {
+            element.style.display = 'block'
+        } else {
+            element.style.display = 'none'
+        }
+    } // end toogle_chart
 
     new Vue({
         el: "#app",
@@ -158,6 +201,7 @@
             number_of_charts: 0,
         },
 
+
         methods: {
             add_chart_to_list_of_charts() {
                 console.log('add_chart_to_list_of_charts')
@@ -175,20 +219,25 @@
                             <h6 class="display-6">Pie-Chart</h6>
                             <hr>
                         </div>
-                        <div class="col-4">
+                        <div class="mt-3 col-4">
                             <label for="labels">Labels</label>
-                            <select v-model="pie_chart.label_to_use" class="form-control form-control-sm"
-                                @change="get_pie_chart(${number})">
+                            <select  id="label_${number}" class="form-control form-control-sm"
+                                onchange="get_pie_chart(${number})">
                                 <option value="">Please Select</option>
                                 ${options}
                             </select>
                         </div>
-                        <div class="col-4">
+                        <div class="mt-3 col-4">
                             <label for="sizes">Sizes</label>
-                            <select v-model="pie_chart.size_to_use" class="form-control form-control-sm" @change="get_pie_chart(${number})">
+                            <select id="size_${number}" class="form-control form-control-sm" onchange="get_pie_chart(${number})">
                                 <option value="">Please Select</option>
                                 ${options}
                             </select>
+                        </div>
+
+                        <div class="mt-3 col-4">
+                            <button class="btn btn-primary btn-sm" onclick="toogle_chart(${number})">Toggle Chart
+                            </button>
                         </div>
 
                         <div class="col-12 mt-10">
@@ -223,25 +272,7 @@
             },
 
 
-            get_pie_chart() {
-                console.log('pie_chart')
-                console.log(this.pie_chart)
-                console.log(this.pie_chart.label_to_use)
-                console.log(this.pie_chart.size_to_use)
 
-
-                axios.get("/pie_chart", {
-                    params: {
-                        label_to_use: this.pie_chart.label_to_use,
-                        size_to_use: this.pie_chart.size_to_use,
-                    }
-                })
-                    .then((response) => {
-                        console.log(response.data);
-                        document.getElementById('pie_chart_img').innerHTML = response.data
-                    });
-
-            },
             dragover(event) {
                 console.log('dragover')
                 event.preventDefault();
