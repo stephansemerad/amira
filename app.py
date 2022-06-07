@@ -15,6 +15,7 @@ import base64
 from io import BytesIO
 from flask import Flask
 from matplotlib.figure import Figure
+import numpy as np
 
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = "static"
@@ -243,53 +244,94 @@ def get_column_names_from_database():
     return jsonify(headers)
 
 
-@app.route("/pie_chart", methods=["GET"])
-def pie_chart():
-    # 1. Create the Matplot
+@app.route("/get_chart", methods=["GET"])
+def get_chart():
+    """'
+    chart_types:
+    pie_chart
+    bar_chart
+    line_chart
+    histogram_chat
+    """
+
     print("")
     print("*********")
-    print("pie_chart")
+    print("get_chart")
+    # http://127.0.0.1:5000/get_chart?chart_type=pie_chart&dimension_1=IDBIAT&dimension_2=IDBIAT
+    # http://127.0.0.1:5000/get_chart?chart_type=bar_chart&dimension_1=IDBIAT&dimension_2=IDBIAT
 
-    label_to_use = request.args.get("label_to_use", None)
-    size_to_use = request.args.get("size_to_use", None)
+    # Fetch data from frontend
+    chart_type = request.args.get("chart_type", None)
+    dimension_1 = request.args.get("dimension_1", None)
+    dimension_2 = request.args.get("dimension_2", None)
+    dimension_3 = request.args.get("dimension_3", None)
+    dimension_4 = request.args.get("dimension_4", None)
 
-    print("label_to_use", label_to_use)
-    print("size_to_use", size_to_use)
+    if chart_type == None:
+        return "Missing Chart Type"
 
-    if size_to_use == "":
-        return ""
+    print("chart_type: ", chart_type)
+    print("dimension_1: ", dimension_1)
+    print("dimension_2: ", dimension_2)
 
-    # From 2 dimension into 1 dimension
-    if label_to_use == "":
-        label_to_use = size_to_use
+    def get_types_of_data_from_db():
+        dictionary = {}
+        data = db.session.execute(f"PRAGMA table_info(data)")
+        for i in data:
+            dictionary[i.name] = i.type
+        return dictionary
 
-    sql = f"PRAGMA table_info(data)"
-    data = db.session.execute(sql)
-    dictionary = {}
-    for i in data:
-        print(i[0], i[1], i[2], i[3])
-        dictionary[str(i[1])] = i[2]
+    if chart_type == "pie_chart":
+        # Take Data Types of Columns of Datatabase
+        dictionary = get_types_of_data_from_db()
 
-    data_type_of_size_to_use = dictionary[size_to_use]
-    if data_type_of_size_to_use == "VARCHAR":
-        sql = f"""select {label_to_use}, count({size_to_use}) as value from data  group by {label_to_use}"""
-        data = db.session.execute(sql)
-    else:
+        # We check data type of Dimension 2 and do either sum or count group by
+        if dictionary[dimension_2] == "VARCHAR":
+            data = db.session.execute(f"""select {dimension_1}, count({dimension_2}) as value from data  group by {dimension_1}""")
+        else:
+            data = db.session.execute(f"""select {dimension_1}, sum({dimension_2}) as value from data  group by {dimension_1}""")
 
-        sql = f"""select {label_to_use}, sum({size_to_use}) as value from data  group by {label_to_use}"""
-        data = db.session.execute(sql)
+        fig = Figure()
+        labels = []  # Dimension 1
+        sizes = []  # Dimension 2
+        for i in data:
+            labels.append(str(i[0]))
+            sizes.append(i[1])
 
-    labels = []
-    sizes = []
-    for x in data:
-        labels.append(str(x[0]))
-        sizes.append(x[1])
+        print("labels: ", labels)
+        print("sizes: ", sizes)
+        ax = fig.subplots()
+        ax.pie(sizes, labels=labels, autopct="%1.1f%%", shadow=True, startangle=90)
 
-    # 1. create the graph
-    fig = Figure()
-    ax = fig.subplots()
-    ax.pie(sizes, labels=labels, autopct="%1.1f%%", shadow=True, startangle=90)
-    ax.axis("equal")
+    if chart_type == "bar_chart":
+        # TODO LOOK HERE AMIRA !!!
+        # https://www.w3schools.com/python/matplotlib_bars.asp
+
+        # 1. Get Data
+        x_array = []
+        y_array = []
+        data = db.session.execute(f"""select {dimension_1}, {dimension_2} from data """)
+
+        for i in data:
+            x_array.append(str(i[0]))
+            y_array.append(i[1])
+
+        # 2. Create the Graph
+        fig = Figure()
+        x = np.array(x_array)  # Dimension 1
+        y = np.array(y_array)  # Dimension 2
+        ax = fig.subplots()
+        ax.bar(x, y)
+
+    if chart_type == "line_chart":
+        # TODO AMIRA
+        # https://www.w3schools.com/python/matplotlib_line.asp
+        pass
+
+    if chart_type == "histogram_chat":
+        # https://www.w3schools.com/python/matplotlib_histograms.asp
+        # TODO AMIRA
+        pass
 
     # 2. Save to buffer
     buf = BytesIO()

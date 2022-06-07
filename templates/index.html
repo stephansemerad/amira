@@ -151,26 +151,31 @@
 
 <script>
 
-    function get_pie_chart(id) {
-        console.log('pie_chart')
+    function get_chart(id) {
+        console.log('get_chart')
         console.log('id: ' + id)
 
-        var label_to_use = document.getElementById('label_' + id).value
-        var size_to_use = document.getElementById('size_' + id).value
 
-        console.log('label_to_use; ', label_to_use)
-        console.log('size_to_use; ', size_to_use)
 
-        axios.get("/pie_chart", {
+        var chart_type = document.getElementById('chart_type_' + id).value
+        var dimension_1 = document.getElementById('dimension_1_' + id).value
+        var dimension_2 = document.getElementById('dimension_2_' + id).value
+        var dimension_3 = document.getElementById('dimension_3_' + id).value
+        var dimension_4 = document.getElementById('dimension_4_' + id).value
+
+        axios.get("/get_chart", {
             params: {
-                label_to_use: label_to_use,
-                size_to_use: size_to_use,
+                chart_type: chart_type,
+                dimension_1: dimension_1,
+                dimension_2: dimension_2,
+                dimension_3: dimension_3,
+                dimension_4: dimension_4,
             }
         }).then((response) => {
-            document.getElementById('pie_chart_img_' + id).innerHTML = response.data
+            document.getElementById('chart_img_' + id).innerHTML = response.data
         });
 
-    } // end get_pie_chart
+    } // end get_chart
 
     function toogle_chart(id) {
         var element = document.getElementById('pie_chart_img_' + id);
@@ -216,24 +221,60 @@
                 var chart_html_template = `
                     <div class="mt-4" id="chart_${number}">
                         <div>
-                            <h6 class="display-6">Pie-Chart</h6>
+                            <h6 class="display-6">Chart # ${number}</h6>
                             <hr>
                         </div>
+
                         <div class="mt-3 col-4">
-                            <label for="labels">Labels</label>
-                            <select  id="label_${number}" class="form-control form-control-sm"
-                                onchange="get_pie_chart(${number})">
+                            <label for="chart_type_${number}">Chart Type</label>
+                            <select  id="chart_type_${number}" class="form-control form-control-sm"
+                                onchange="get_chart(${number})">
+                                <option value="">Please Select</option>
+
+                                <option value="pie_chart">pie_chart</option>
+                                <option value="bar_chart">bar_chart</option>
+                                <option value="line_chart">line_chart</option>
+                                <option value="histogram_chat">histogram_chat</option>
+                                
+
+                            </select>
+                        </div>
+
+
+                        <div class="mt-3 col-4">
+                            <label for="dimension_1_${number}">Dimension 1</label>
+                            <select  id="dimension_1_${number}" class="form-control form-control-sm"
+                                onchange="get_chart(${number})">
                                 <option value="">Please Select</option>
                                 ${options}
                             </select>
                         </div>
                         <div class="mt-3 col-4">
-                            <label for="sizes">Sizes</label>
-                            <select id="size_${number}" class="form-control form-control-sm" onchange="get_pie_chart(${number})">
+                            <label for="dimension_2_${number}">Dimension 2</label>
+                            <select id="dimension_2_${number}" class="form-control form-control-sm" onchange="get_chart(${number})">
                                 <option value="">Please Select</option>
                                 ${options}
                             </select>
                         </div>
+
+
+                        <div class="mt-3 col-4">
+                            <label for="dimension_3_${number}">Dimension 3</label>
+                            <select id="dimension_3_${number}" class="form-control form-control-sm" onchange="get_chart(${number})">
+                                <option value="">Please Select</option>
+                                ${options}
+                            </select>
+                        </div>
+                        
+
+                        <div class="mt-3 col-4">
+                            <label for="dimension_4_${number}">Dimension 4</label>
+                            <select id="dimension_4_${number}" class="form-control form-control-sm" onchange="get_chart(${number})">
+                                <option value="">Please Select</option>
+                                ${options}
+                            </select>
+                        </div>
+
 
                         <div class="mt-3 col-4">
                             <button class="btn btn-primary btn-sm" onclick="toogle_chart(${number})">Toggle Chart
@@ -241,7 +282,7 @@
                         </div>
 
                         <div class="col-12 mt-10">
-                            <div id="pie_chart_img_${number}" style="width: 100%;">
+                            <div id="chart_img_${number}" style="width: 100%;">
                             </div>
                         </div>
                     </div>
