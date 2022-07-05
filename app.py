@@ -20,7 +20,8 @@ from matplotlib.figure import Figure
 import numpy as np
 import seaborn as sns
 import pandas as pd
-from glob import glob; from os.path import expanduser
+from glob import glob
+from os.path import expanduser
 
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = "static"
@@ -241,6 +242,14 @@ def delete_column():
     )
 
 
+@app.route("/do_something_with_column_selection", methods=["POST"])
+def do_something_with_column_selection():
+    print("do_something_with_column_selection")
+    selected_columns = request.form.get("selected_columns", None)
+    print("selected_columns: ", selected_columns)
+    return jsonify({"selected_columns": str(selected_columns)})
+
+
 @app.route("/get_column_names_from_database", methods=["GET"])
 def get_column_names_from_database():
     sql = f"PRAGMA table_info(data)"
@@ -292,9 +301,13 @@ def get_chart():
 
         # We check data type of Dimension 2 and do either sum or count group by
         if dictionary[dimension_2] == "VARCHAR":
-            data = db.session.execute(f"""select {dimension_1}, count({dimension_2}) as value from data  group by {dimension_1}""")
+            data = db.session.execute(
+                f"""select {dimension_1}, count({dimension_2}) as value from data  group by {dimension_1}"""
+            )
         else:
-            data = db.session.execute(f"""select {dimension_1}, sum({dimension_2}) as value from data  group by {dimension_1}""")
+            data = db.session.execute(
+                f"""select {dimension_1}, sum({dimension_2}) as value from data  group by {dimension_1}"""
+            )
 
         fig = Figure()
         labels = []  # Dimension 1
@@ -345,12 +358,9 @@ def get_chart():
         x = np.array(x_array)  # Dimension 1
         y = np.array(y_array)  # Dimension 2
         ax = fig.subplots()
-        chart= sns.countplot(x, hue=y ,ax=ax)
+        chart = sns.countplot(x, hue=y, ax=ax)
         chart.set(xlabel="Activity sector")
         chart.set(title="Distribution of the default rate by sector of activity")
-       
-        
-
 
     if chart_type == "histogram_chat":
         # https://www.w3schools.com/python/matplotlib_histograms.asp
@@ -371,71 +381,76 @@ def get_chart():
     data = base64.b64encode(buf.getbuffer()).decode("ascii")
     return f"<img src='data:image/png;base64,{data}'/>"
 
-conn = sqlite3.connect('database.db')
+
+conn = sqlite3.connect("database.db")
 cursor = conn.cursor()
-dat = pd.read_sql(f"select * from data" ,conn)
-dat.to_csv('csvdata.csv', index=False)
-dataf=pd.read_csv("csvdata.csv")
+dat = pd.read_sql(f"select * from data", conn)
+dat.to_csv("csvdata.csv", index=False)
+dataf = pd.read_csv("csvdata.csv")
 
 
-
-numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
-quanti= dataf.select_dtypes(include=numerics)
+numerics = ["int16", "int32", "int64", "float16", "float32", "float64"]
+quanti = dataf.select_dtypes(include=numerics)
 print(quanti)
-quanti_columns= quanti.columns.values.tolist()
+quanti_columns = quanti.columns.values.tolist()
 print(quanti_columns)
 
 
-
-                                                           # Analyse des valeurs extremes OUTLIERS
+# Analyse des valeurs extremes OUTLIERS
 def Tukey_filter(df, quanti_columns):
-    Q1=df[quanti_columns].quantile(0.25)
-    Q3=df[quanti_columns].quantile(0.75)
-    IQR=Q3-Q1
-    upper_bound=Q3+(IQR*1.5)
-    lower_bound=Q1-(IQR*1.5)
+    Q1 = df[quanti_columns].quantile(0.25)
+    Q3 = df[quanti_columns].quantile(0.75)
+    IQR = Q3 - Q1
+    upper_bound = Q3 + (IQR * 1.5)
+    lower_bound = Q1 - (IQR * 1.5)
     for val_col in quanti_columns:
         for j in range(df.shape[0]):
-          if df[val_col].iloc[j] > upper_bound[val_col]:
-             df[val_col].iloc[j] = upper_bound[val_col]
-          elif df[val_col].iloc[j] < lower_bound[val_col] :
-              df[val_col].iloc[j] = lower_bound[val_col]
+            if df[val_col].iloc[j] > upper_bound[val_col]:
+                df[val_col].iloc[j] = upper_bound[val_col]
+            elif df[val_col].iloc[j] < lower_bound[val_col]:
+                df[val_col].iloc[j] = lower_bound[val_col]
 
     return df
 
-data_cleaning=Tukey_filter(dataf, quanti_columns)
-print('here is aaaaaa',data_cleaning)
 
-                                                         
-                                                         
-                                                         # DETECT OUTLIERS
-                                                         
-                                                          # OPTION 1:  iqr filter
-print('dataf type',dataf.dtypes)
-
-print('quanti type',quanti.dtypes)
+data_cleaning = Tukey_filter(dataf, quanti_columns)
+print("here is aaaaaa", data_cleaning)
 
 
-def detectOutliers(data,col):
-    Q3=data[col].quantile(0.75)
-    Q1=data[col].quantile(0.25)
-    IQR=Q3-Q1
-    lower_range=Q1-1.5*IQR
-    upper_range=Q3+1.5*IQR
+# DETECT OUTLIERS
+
+# OPTION 1:  iqr filter
+print("dataf type", dataf.dtypes)
+
+print("quanti type", quanti.dtypes)
+
+
+def detectOutliers(data, col):
+    Q3 = data[col].quantile(0.75)
+    Q1 = data[col].quantile(0.25)
+    IQR = Q3 - Q1
+    lower_range = Q1 - 1.5 * IQR
+    upper_range = Q3 + 1.5 * IQR
 
     print("IQR value for column %s is: %s" % (col, IQR))
-    print("lower and upper  value for column %s is: %s,%s" % (col,lower_range,upper_range))
+    print(
+        "lower and upper  value for column %s is: %s,%s"
+        % (col, lower_range, upper_range)
+    )
 
-    data['outlier']=np.where((data[col] < lower_range) | (data[col] > upper_range), 1 ,data['outlier'])
-    
-data=quanti
-data['outlier']=1
+    data["outlier"] = np.where(
+        (data[col] < lower_range) | (data[col] > upper_range), 1, data["outlier"]
+    )
+
+
+data = quanti
+data["outlier"] = 1
 for i in quanti_columns:
-    detectOutliers(data,i)
-print('this is the sum',data['outlier'].sum())
-                                                           
-                                                           # Z score 
-                                                           # OPTION 2: z-score filter: z-score < 3
+    detectOutliers(data, i)
+print("this is the sum", data["outlier"].sum())
+
+# Z score
+# OPTION 2: z-score filter: z-score < 3
 # lim = np.abs((quanti- quanti.mean()) / quanti.std(ddof=0)) < 3
 # print('resukt with z score ',lim)
 
@@ -451,30 +466,30 @@ print('this is the sum',data['outlier'].sum())
 #         outlier.append(i)
 # print('outlier in dataset is', outlier)
 
-                                                           
-                                                           
-                                                           
-print(dataf.describe())
-a_list = [['10', 1400], ['20', 2], ['30', 3]]
 
-dff = pd.DataFrame(a_list, columns=['dog', 'cat'])
+print(dataf.describe())
+a_list = [["10", 1400], ["20", 2], ["30", 3]]
+
+dff = pd.DataFrame(a_list, columns=["dog", "cat"])
+
 
 def outlier_detect(df):
-    
-    for i in df.select_dtypes('number').columns:
-        Q1=df.describe().at['25%',i]
-        Q3=df.describe().at['75%',i]
-        IQR=Q3 - Q1
-        LTV=Q1 - 1.5 * IQR
-        UTV=Q3 + 1.5 * IQR
-        x=np.array(df[i])
-        p=[]
+
+    for i in df.select_dtypes("number").columns:
+        Q1 = df.describe().at["25%", i]
+        Q3 = df.describe().at["75%", i]
+        IQR = Q3 - Q1
+        LTV = Q1 - 1.5 * IQR
+        UTV = Q3 + 1.5 * IQR
+        x = np.array(df[i])
+        p = []
         for j in x:
-            if j < LTV or j>UTV:
+            if j < LTV or j > UTV:
                 p.append(j)
     return len(p)
 
-print('mmmmmmmmmmmmmmmmmmmmmmmmmmm',outlier_detect(dataf))
+
+print("mmmmmmmmmmmmmmmmmmmmmmmmmmm", outlier_detect(dataf))
 
 # print(dataf.describe())
 # print(dataf.shape)
@@ -496,25 +511,15 @@ print('mmmmmmmmmmmmmmmmmmmmmmmmmmm',outlier_detect(dataf))
 #     outlier_free_list = [x for x in data[col] if (
 #         (x > lower_range) & (x < upper_range))]
 #     filtered_data = data.loc[data[col].isin(outlier_free_list)]
-    
 
 
 # for i in quanti_columns:
 #      removeOutliers(quanti, i)
 # dataf = filtered_data
-  
+
 # # Assigning filtered data back to our original variable
 # print('new data', dataf )
 # print("Shape of data after outlier removal is: ", dataf.shape)
-
-
-
-
-
-
-
-
-
 
 
 if __name__ == "__main__":

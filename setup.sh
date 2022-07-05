@@ -8,7 +8,8 @@ python -m pip install Flask-SQLAlchemy
 python -m pip install pandas
 python -m pip install itsdangerous==2.0.1
 python -m pip install matplotlib
-
+python -m pip install seaborn
+python -m pip install --upgrade pip
 
 python -m pip freeze > requirements.txt
 deactivate
