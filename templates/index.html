@@ -60,6 +60,7 @@
                         </tr>
                     </thead>
                     <tbody>
+                    
                         <tr v-for="row in table_meta">
                             <td>[[row.slice(0, 1)[0] ]]</td>
                             <td>[[ row.slice(1, 2)[0] ]]</td>
@@ -96,13 +97,56 @@
         </div>
     </div>
 
+    <!doctype html>
+    <html>
+    <head>
+        <title>Validation</title>
+    </head>
+    <body>
+    
+    <form  action="" method="post">
+        <select  multiple="multiple" size="3" >
+            <option value="">Please Select</option>
+            ${options}
+        </select>
+        <br />
+        <input type="button" value="Validate" onclick="_ValidateSelect()" />
+    </form>
+    
+    <script>
+        function _ValidateSelect() {
+            var $options = $glue = '';
+        
+            for(var $i = 0; $i < this.quanti_columns.length; $i++) {
+                if(this.quanti_columns[$i].selected == true) {
+                    $options += $glue + this.quanti_columns[$i].value;
+                    $glue = ', ';
+                }
+            }
+            if($options != '') alert($options);
+            else alert('Please Select Value');
+        }
+        
+    </script>
+    
+    </body>
+    </html>
+
+
     <!-- NEW -->
     <div class="mt-5 row">
         <div class="col-2">
-            <button class="btn btn-primary btn-sm" @click="add_chart_to_list_of_charts()">Add new Chart</button>
+               <button type="button" class="btn btn-outline-danger"  @click="add_chart_to_list_of_charts()">
+               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"></path>
+                 </svg>
+            Add new Chart
+                </button>
         </div>
     </div>
 
+    
+    
     <div id="list_of_charts" class="row mt-5">
     </div>
     <!-- NEW -->
@@ -135,7 +179,6 @@
     <small>column_names: [[column_names]]</small> <br>
 
 </div>
-
 
 <style>
     .mystyle {
@@ -178,7 +221,7 @@
     } // end get_chart
 
     function toogle_chart(id) {
-        var element = document.getElementById('pie_chart_img_' + id);
+        var element = document.getElementById('chart_img_' + id);
         console.log('element.style.display: ', element.style.display)
 
         if (element.style.display == 'none') {
@@ -221,7 +264,7 @@
                 var chart_html_template = `
                     <div class="mt-4" id="chart_${number}">
                         <div>
-                            <h6 class="display-6">Chart # ${number}</h6>
+                            <h6 class="display-6">Chart  ${number}</h6>
                             <hr>
                         </div>
 
@@ -277,14 +320,21 @@
 
 
                         <div class="mt-3 col-4">
-                            <button class="btn btn-primary btn-sm" onclick="toogle_chart(${number})">Toggle Chart
+                            <button type="button" class="btn btn-danger" onclick="toogle_chart(${number})">View Chart
                             </button>
+                            <button type="button" class="btn btn-outline-danger"  @click="add_chart_to_list_of_charts(${number})">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+                                 <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"></path>
+                                  </svg>
+                             Add new Chart
+                                 </button>
                         </div>
 
                         <div class="col-12 mt-10">
                             <div id="chart_img_${number}" style="width: 100%;">
                             </div>
                         </div>
+                       
                     </div>
                 `
                 var node = document.createElement("div");
